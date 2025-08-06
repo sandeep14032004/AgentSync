@@ -12,6 +12,9 @@ import { authClient } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertTitle } from '@/components/ui/alert';
+import { useRouter } from 'next/navigation';
+import { FaGithub } from 'react-icons/fa';
+import { FaGoogle } from 'react-icons/fa';
 import {
   useFormField,
   Form,
@@ -30,6 +33,7 @@ const formSchema = z.object({
 })
 
 export const SignInView = () => {
+    const router = useRouter();
 
     const [error,setError] = useState<string | null>(null);
     const [pending,setPending] = useState(false);
@@ -55,6 +59,7 @@ export const SignInView = () => {
             {
                 onSuccess: () => {
                     setPending(false);
+                    router.push("/");
                 },
                 onError: ({ error }) => {
                     setError(error.message)
@@ -164,7 +169,8 @@ export const SignInView = () => {
                                     className='w-full'
 
                                 >
-                                    Google
+                                    <FaGoogle className='inline-block mr-2' />
+                                    
                                 </Button>
                                 <Button
                                     disabled={pending}
@@ -173,7 +179,8 @@ export const SignInView = () => {
                                     className='w-full'
                                     onClick={() => onSocial("github")}
                                 >
-                                    GitHub
+                                    <FaGithub className='inline-block mr-2' />
+                                    
                                 </Button>
                             </div>
                             <div className="text-center text-sm">
