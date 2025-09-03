@@ -2,11 +2,11 @@
 
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { OctagonAlertIcon, Loader2 } from "lucide-react";
+import { OctagonAlertIcon } from "lucide-react";
 import { FaGithub, FaGoogle } from "react-icons/fa";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertTitle } from "@/components/ui/alert";
+import { LoadingState } from "@/components/loading-state";
 import {
   Form,
   FormItem,
@@ -49,7 +50,6 @@ export const SignUpView = () => {
       confirmPassword: "",
     },
   });
-  // Removed problematic useEffect that was interfering with loading state
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     setError(null);
@@ -64,7 +64,7 @@ export const SignUpView = () => {
       },
       {
         onSuccess: () => {
-          setPending(false);
+          // Don't set pending to false here as we're redirecting
           router.push("/");
         },
         onError: ({ error }) => {
@@ -86,7 +86,8 @@ export const SignUpView = () => {
       },
       {
         onSuccess: () => {
-          setPending(false);
+          // Social auth typically redirects externally
+          // so we might not need to handle success here
         },
         onError: ({ error }) => {
           setPending(false);
@@ -95,6 +96,18 @@ export const SignUpView = () => {
       }
     );
   };
+
+  // Show loading state overlay when pending
+  if (pending) {
+    return (
+      <div className="flex flex-col gap-6">
+        <LoadingState 
+          title="Creating account..." 
+          description="Please wait while we create your account." 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,7 +131,12 @@ export const SignUpView = () => {
                       <FormItem>
                         <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input type="text" placeholder="example" {...field} />
+                          <Input 
+                            type="text" 
+                            placeholder="example" 
+                            disabled={pending}
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -136,6 +154,7 @@ export const SignUpView = () => {
                           <Input
                             type="email"
                             placeholder="agent@example.com"
+                            disabled={pending}
                             {...field}
                           />
                         </FormControl>
@@ -155,6 +174,7 @@ export const SignUpView = () => {
                           <Input
                             type="password"
                             placeholder="********"
+                            disabled={pending}
                             {...field}
                           />
                         </FormControl>
@@ -174,6 +194,7 @@ export const SignUpView = () => {
                           <Input
                             type="password"
                             placeholder="********"
+                            disabled={pending}
                             {...field}
                           />
                         </FormControl>
@@ -189,15 +210,11 @@ export const SignUpView = () => {
                   </Alert>
                 )}
                 <Button
-                  disabled={form.formState.isSubmitting || pending}
+                  disabled={pending}
                   type="submit"
                   className="w-full"
                 >
-                  {pending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Sign up"
-                  )}
+                  {pending ? "Creating account..." : "Sign up"}
                 </Button>
                 <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                   <span className="bg-card text-muted-foreground relative z-10 px-2">
